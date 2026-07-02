@@ -3,6 +3,7 @@
         "rust-lang.rust-analyzer",
         "tamasfe.even-better-toml",
         "fill-labs.dependi",
-        "serayuzgur.crates"
+        "serayuzgur.crates",
+        "ms-vscode.vscode-serial-monitor"
     ]
 }

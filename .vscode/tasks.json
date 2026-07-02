@@ -20,8 +20,26 @@
             "problemMatcher": []
         },
         {
+            "label": "project: check",
+            "command": "./scripts/check.sh",
+            "type": "shell",
+            "problemMatcher": "$rustc"
+        },
+        {
+            "label": "project: quality",
+            "command": "./scripts/quality.sh",
+            "type": "shell",
+            "problemMatcher": "$rustc"
+        },
+        {
             "label": "espflash: list ports",
             "command": "espflash list-ports",
+            "type": "shell",
+            "problemMatcher": []
+        },
+        {
+            "label": "espflash: monitor",
+            "command": "espflash monitor --chip esp32c3",
             "type": "shell",
             "problemMatcher": []
         },
@@ -34,6 +52,18 @@
         {
             "label": "esp32c3: flash hello",
             "command": "cargo run --bin hello",
+            "type": "shell",
+            "problemMatcher": "$rustc"
+        },
+        {
+            "label": "esp32c3: flash rgb-test",
+            "command": "cargo run --bin rgb_test",
+            "type": "shell",
+            "problemMatcher": "$rustc"
+        },
+        {
+            "label": "esp32c3: flash safe-off",
+            "command": "cargo run --bin safe_off",
             "type": "shell",
             "problemMatcher": "$rustc"
         }

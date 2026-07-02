@@ -25,6 +25,12 @@ Na tym komputerze zostalo zainstalowane:
 - target `riscv32imc-unknown-none-elf`
 - `espflash 4.4.0`
 - `esp-generate 1.3.0`
+- `rustfmt` - formatowanie Rust, odpowiednik Prettiera dla kodu Rust.
+- `clippy` - linter Rust uruchamiany tez przez `rust-analyzer` w VS Code.
+- `taplo` - formatowanie i kontrola plikow TOML.
+- `cargo-audit` - sprawdzanie znanych podatnosci w zaleznosciach.
+- `cargo-deny` - polityka zaleznosci: licencje, zrodla, duplikaty, advisories.
+- `cargo-machete` - wykrywanie nieuzywanych zaleznosci w `Cargo.toml`.
 
 Po otwarciu nowego terminala upewnij sie, ze Cargo jest w `PATH`:
 
@@ -49,6 +55,15 @@ Pelniejsza kontrola:
 ```bash
 ./scripts/check.sh
 ```
+
+Szersza kontrola jakosci i zaleznosci:
+
+```bash
+./scripts/quality.sh
+```
+
+`check.sh` uruchamia szybki, codzienny zestaw: `cargo fmt --all --check`, `cargo clippy --all-targets -- -D warnings` i release build wszystkich binarek.
+`quality.sh` dodaje do tego `taplo`, `cargo-machete`, `cargo-audit` oraz `cargo-deny` dla licencji, zrodel i polityki zaleznosci.
 
 ## Flashowanie plytki
 
@@ -90,18 +105,45 @@ espflash flash --monitor --chip esp32c3
 
 Dlatego po `cargo run` program zostanie wgrany i od razu otworzy sie monitor szeregowy.
 
+Sam monitor bez ponownego flashowania:
+
+```bash
+espflash monitor --chip esp32c3
+```
+
+Jesli system widzi kilka portow:
+
+```bash
+espflash list-ports
+espflash monitor --chip esp32c3 --port /dev/cu.usbmodemXXXX
+```
+
+W monitorze `Ctrl+C` konczy podglad, a `Ctrl+R` resetuje plytke.
+
 ## VS Code
 
 Zainstaluj rekomendowane rozszerzenia z `.vscode/extensions.json`.
+
+Najwazniejsze rozszerzenia:
+
+- `rust-lang.rust-analyzer` - analiza kodu Rust, podpowiedzi, formatowanie przez `rustfmt`, uruchamianie `clippy`.
+- `tamasfe.even-better-toml` - obsluga i formatowanie TOML.
+- `fill-labs.dependi` i `serayuzgur.crates` - podglad wersji zaleznosci.
+- `ms-vscode.vscode-serial-monitor` - opcjonalny monitor portu szeregowego w VS Code. Do tego repo nadal najprostszy jest `espflash monitor`.
 
 Najwazniejsze zadania w VS Code:
 
 - `cargo: build`
 - `cargo: clippy`
 - `cargo: fmt`
+- `project: check`
+- `project: quality`
 - `espflash: list ports`
+- `espflash: monitor`
 - `esp32c3: flash sensors-rgb`
 - `esp32c3: flash hello`
+- `esp32c3: flash rgb-test`
+- `esp32c3: flash safe-off`
 
 ## Notatki sprzetowe
 

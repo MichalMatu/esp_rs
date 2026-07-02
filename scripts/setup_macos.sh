@@ -38,7 +38,6 @@ if command -v code >/dev/null 2>&1; then
     rust-lang.rust-analyzer \
     tamasfe.even-better-toml \
     fill-labs.dependi \
-    serayuzgur.crates \
     ms-vscode.vscode-serial-monitor; do
     code --install-extension "$extension"
   done

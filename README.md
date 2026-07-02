@@ -128,7 +128,7 @@ Najwazniejsze rozszerzenia:
 
 - `rust-lang.rust-analyzer` - analiza kodu Rust, podpowiedzi, formatowanie przez `rustfmt`, uruchamianie `clippy`.
 - `tamasfe.even-better-toml` - obsluga i formatowanie TOML.
-- `fill-labs.dependi` i `serayuzgur.crates` - podglad wersji zaleznosci.
+- `fill-labs.dependi` - podglad wersji zaleznosci.
 - `ms-vscode.vscode-serial-monitor` - opcjonalny monitor portu szeregowego w VS Code. Do tego repo nadal najprostszy jest `espflash monitor`.
 
 Najwazniejsze zadania w VS Code:

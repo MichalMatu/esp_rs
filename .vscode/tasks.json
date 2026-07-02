@@ -1,0 +1,41 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "cargo: build",
+            "command": "cargo build",
+            "type": "shell",
+            "problemMatcher": "$rustc"
+        },
+        {
+            "label": "cargo: clippy",
+            "command": "cargo clippy --all-targets -- -D warnings",
+            "type": "shell",
+            "problemMatcher": "$rustc"
+        },
+        {
+            "label": "cargo: fmt",
+            "command": "cargo fmt --all",
+            "type": "shell",
+            "problemMatcher": []
+        },
+        {
+            "label": "espflash: list ports",
+            "command": "espflash list-ports",
+            "type": "shell",
+            "problemMatcher": []
+        },
+        {
+            "label": "esp32c3: flash blink",
+            "command": "cargo run",
+            "type": "shell",
+            "problemMatcher": "$rustc"
+        },
+        {
+            "label": "esp32c3: flash hello",
+            "command": "cargo run --bin hello",
+            "type": "shell",
+            "problemMatcher": "$rustc"
+        }
+    ]
+}

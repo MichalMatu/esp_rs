@@ -40,9 +40,11 @@ const IMU_ACCEL_G2_50HZ: u8 = 0x60 | 0x0A;
 const IMU_ACCEL_LOW_NOISE: u8 = 0x03;
 const ACCEL_1G_RAW: i16 = 16_384;
 const RGB_MAX_BRIGHTNESS: u8 = 255;
-const RGB_LEVEL: u8 = 4;
-const RGB_UPDATE_MS: u64 = 50;
+const RGB_LEVEL: u8 = 16;
+const RGB_UPDATE_MS: u64 = 20;
+const RGB_SMOOTHING_DIVISOR: i16 = 4;
 const SENSOR_LOG_MS: u64 = 5_000;
+const SHTC3_MEASURE_DELAY_MS: u64 = 12;
 
 #[allow(
     clippy::large_stack_frames,
@@ -91,6 +93,9 @@ fn main() -> ! {
     let mut last_rgb_update = Instant::now();
     let mut last_sensor_log = Instant::now();
     let mut last_accel = Accel::default();
+    let mut target_rgb = RGB8::new(0, 0, 0);
+    let mut current_rgb = RGB8::new(0, 0, 0);
+    let mut shtc3_started_at: Option<Instant> = None;
 
     loop {
         let now = Instant::now();
@@ -101,9 +106,10 @@ fn main() -> ! {
             match read_accel(&mut i2c) {
                 Ok(accel) => {
                     last_accel = accel;
-                    let color = accel_to_rgb(accel);
+                    target_rgb = accel_to_rgb(accel);
+                    current_rgb = smooth_rgb(current_rgb, target_rgb);
 
-                    if let Err(err) = write_rgb(&mut rgb_led, color) {
+                    if let Err(err) = write_rgb(&mut rgb_led, current_rgb) {
                         warn!("RGB write failed: {:?}", err);
                     }
                 }
@@ -111,22 +117,34 @@ fn main() -> ! {
             }
         }
 
-        if last_sensor_log.elapsed() >= Duration::from_millis(SENSOR_LOG_MS) {
+        if let Some(started_at) = shtc3_started_at.as_ref() {
+            if started_at.elapsed() >= Duration::from_millis(SHTC3_MEASURE_DELAY_MS) {
+                shtc3_started_at = None;
+
+                match read_shtc3_measurement(&mut i2c) {
+                    Ok(climate) => info!(
+                        "SHTC3 temp={:.2} C humidity={:.2}% accel_raw=({}, {}, {}) target_rgb=({}, {}, {}) rgb=({}, {}, {})",
+                        climate.temperature_c,
+                        climate.humidity_percent,
+                        last_accel.x,
+                        last_accel.y,
+                        last_accel.z,
+                        target_rgb.r,
+                        target_rgb.g,
+                        target_rgb.b,
+                        current_rgb.r,
+                        current_rgb.g,
+                        current_rgb.b
+                    ),
+                    Err(err) => warn!("SHTC3 read failed: {:?}", err),
+                }
+            }
+        } else if last_sensor_log.elapsed() >= Duration::from_millis(SENSOR_LOG_MS) {
             last_sensor_log = now;
 
-            match read_shtc3(&mut i2c, &mut delay) {
-                Ok(climate) => info!(
-                    "SHTC3 temp={:.2} C humidity={:.2}% accel_raw=({}, {}, {}) rgb=({}, {}, {})",
-                    climate.temperature_c,
-                    climate.humidity_percent,
-                    last_accel.x,
-                    last_accel.y,
-                    last_accel.z,
-                    accel_to_rgb(last_accel).r,
-                    accel_to_rgb(last_accel).g,
-                    accel_to_rgb(last_accel).b
-                ),
-                Err(err) => warn!("SHTC3 read failed: {:?}", err),
+            match start_shtc3_measurement(&mut i2c) {
+                Ok(()) => shtc3_started_at = Some(now),
+                Err(err) => warn!("SHTC3 measurement start failed: {:?}", err),
             }
         }
     }
@@ -197,6 +215,27 @@ fn accel_to_rgb(accel: Accel) -> RGB8 {
     }
 }
 
+fn smooth_rgb(current: RGB8, target: RGB8) -> RGB8 {
+    RGB8 {
+        r: smooth_channel(current.r, target.r),
+        g: smooth_channel(current.g, target.g),
+        b: smooth_channel(current.b, target.b),
+    }
+}
+
+fn smooth_channel(current: u8, target: u8) -> u8 {
+    let diff = target as i16 - current as i16;
+
+    if diff == 0 {
+        return current;
+    }
+
+    let step = diff / RGB_SMOOTHING_DIVISOR;
+    let step = if step == 0 { diff.signum() } else { step };
+
+    (current as i16 + step).clamp(0, RGB_MAX_BRIGHTNESS as i16) as u8
+}
+
 fn write_rgb<const BUFFER_SIZE: usize>(
     rgb_led: &mut SmartLedsAdapter<'_, BUFFER_SIZE>,
     color: RGB8,
@@ -219,14 +258,18 @@ where
     Ok(())
 }
 
-fn read_shtc3<I2C>(i2c: &mut I2C, delay: &mut Delay) -> Result<Climate, SensorError<I2C::Error>>
+fn start_shtc3_measurement<I2C>(i2c: &mut I2C) -> Result<(), SensorError<I2C::Error>>
 where
     I2C: embedded_hal::i2c::I2c,
 {
     i2c.write(SHTC3_ADDR, &[0x78, 0x66])
-        .map_err(SensorError::I2c)?;
-    delay.delay_millis(12);
+        .map_err(SensorError::I2c)
+}
 
+fn read_shtc3_measurement<I2C>(i2c: &mut I2C) -> Result<Climate, SensorError<I2C::Error>>
+where
+    I2C: embedded_hal::i2c::I2c,
+{
     let mut data = [0_u8; 6];
     i2c.read(SHTC3_ADDR, &mut data).map_err(SensorError::I2c)?;
 

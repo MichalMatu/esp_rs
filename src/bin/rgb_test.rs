@@ -18,7 +18,7 @@ use smart_leds::{RGB8, SmartLedsWrite, brightness, gamma};
 
 esp_bootloader_esp_idf::esp_app_desc!();
 
-const RGB_LEVEL: u8 = 4;
+const RGB_LEVEL: u8 = 16;
 
 #[allow(
     clippy::large_stack_frames,
@@ -37,11 +37,11 @@ fn main() -> ! {
     let delay = Delay::new();
 
     loop {
-        write_one(&mut rgb, RGB8::new(16, 0, 0));
+        write_one(&mut rgb, RGB8::new(255, 0, 0));
         delay.delay_millis(800);
-        write_one(&mut rgb, RGB8::new(0, 16, 0));
+        write_one(&mut rgb, RGB8::new(0, 255, 0));
         delay.delay_millis(800);
-        write_one(&mut rgb, RGB8::new(0, 0, 16));
+        write_one(&mut rgb, RGB8::new(0, 0, 255));
         delay.delay_millis(800);
         write_one(&mut rgb, RGB8::new(0, 0, 0));
         delay.delay_millis(800);

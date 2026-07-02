@@ -17,7 +17,7 @@ use esp_hal::main;
 use esp_hal::rmt::Rmt;
 use esp_hal::time::Rate;
 use esp_hal::time::{Duration, Instant};
-use esp_hal_smartled::{RmtSmartLeds, Ws2812Timing, buffer_size, color_order};
+use esp_hal_smartled::{RmtSmartLeds, Sk68xxTiming, buffer_size, color_order};
 use log::{info, warn};
 use smart_leds::{RGB8, SmartLedsWrite};
 
@@ -39,7 +39,7 @@ const IMU_DEVICE_ID_ICM42670: u8 = 0x67;
 const IMU_ACCEL_G2_50HZ: u8 = 0x60 | 0x0A;
 const IMU_ACCEL_LOW_NOISE: u8 = 0x03;
 const ACCEL_1G_RAW: i16 = 16_384;
-const RGB_MAX_BRIGHTNESS: u8 = 64;
+const RGB_MAX_BRIGHTNESS: u8 = 12;
 const RGB_UPDATE_MS: u64 = 50;
 const SENSOR_LOG_MS: u64 = 5_000;
 
@@ -86,9 +86,13 @@ fn main() -> ! {
         _,
         LedColor,
         color_order::Grb,
-        Ws2812Timing,
+        Sk68xxTiming,
     >::new_with_memsize(rmt.channel0, peripherals.GPIO2, 2)
     .unwrap();
+
+    if let Err(err) = rgb_led.write([RGB8::new(0, 0, 0)]) {
+        warn!("RGB initial off failed: {:?}", err);
+    }
 
     let mut last_rgb_update = Instant::now();
     let mut last_sensor_log = Instant::now();

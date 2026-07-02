@@ -1,0 +1,46 @@
+# macOS / system
+.DS_Store
+._*
+
+# Rust build output
+/target/
+
+# ESP / embedded generated files
+/.embuild/
+/build/
+*.elf
+*.bin
+*.hex
+*.map
+*.uf2
+*.log
+
+# Python helper cache used by CAD/build scripts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+secrets.*
+*.pem
+*.key
+*.crt
+
+# VS Code: ignore local state, keep useful shared project config
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/tasks.json
+!.vscode/launch.json
+*.code-workspace
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+*~

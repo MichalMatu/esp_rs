@@ -17,9 +17,9 @@ use esp_hal::main;
 use esp_hal::rmt::Rmt;
 use esp_hal::time::Rate;
 use esp_hal::time::{Duration, Instant};
-use esp_hal_smartled::{RmtSmartLeds, Sk68xxTiming, buffer_size, color_order};
+use esp_hal_smartled::{SmartLedsAdapter, smart_led_buffer};
 use log::{info, warn};
-use smart_leds::{RGB8, SmartLedsWrite};
+use smart_leds::{RGB8, SmartLedsWrite, brightness, gamma};
 
 // This creates a default app-descriptor required by the esp-idf bootloader.
 // For more information see: <https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/app_image_format.html#application-description>
@@ -39,7 +39,8 @@ const IMU_DEVICE_ID_ICM42670: u8 = 0x67;
 const IMU_ACCEL_G2_50HZ: u8 = 0x60 | 0x0A;
 const IMU_ACCEL_LOW_NOISE: u8 = 0x03;
 const ACCEL_1G_RAW: i16 = 16_384;
-const RGB_MAX_BRIGHTNESS: u8 = 12;
+const RGB_MAX_BRIGHTNESS: u8 = 255;
+const RGB_LEVEL: u8 = 4;
 const RGB_UPDATE_MS: u64 = 50;
 const SENSOR_LOG_MS: u64 = 5_000;
 
@@ -80,17 +81,10 @@ fn main() -> ! {
     }
 
     let rmt: Rmt<'_, Blocking> = Rmt::new(peripherals.RMT, Rate::from_mhz(80)).unwrap();
-    type LedColor = RGB8;
-    let mut rgb_led = RmtSmartLeds::<
-        { buffer_size::<LedColor>(1) },
-        _,
-        LedColor,
-        color_order::Grb,
-        Sk68xxTiming,
-    >::new_with_memsize(rmt.channel0, peripherals.GPIO2, 2)
-    .unwrap();
+    let mut rmt_buffer = smart_led_buffer!(1);
+    let mut rgb_led = SmartLedsAdapter::new(rmt.channel0, peripherals.GPIO2, &mut rmt_buffer);
 
-    if let Err(err) = rgb_led.write([RGB8::new(0, 0, 0)]) {
+    if let Err(err) = write_rgb(&mut rgb_led, RGB8::new(0, 0, 0)) {
         warn!("RGB initial off failed: {:?}", err);
     }
 
@@ -109,7 +103,7 @@ fn main() -> ! {
                     last_accel = accel;
                     let color = accel_to_rgb(accel);
 
-                    if let Err(err) = rgb_led.write([color]) {
+                    if let Err(err) = write_rgb(&mut rgb_led, color) {
                         warn!("RGB write failed: {:?}", err);
                     }
                 }
@@ -201,6 +195,13 @@ fn accel_to_rgb(accel: Accel) -> RGB8 {
         g: axis_to_brightness(accel.y),
         b: axis_to_brightness(accel.z),
     }
+}
+
+fn write_rgb<const BUFFER_SIZE: usize>(
+    rgb_led: &mut SmartLedsAdapter<'_, BUFFER_SIZE>,
+    color: RGB8,
+) -> Result<(), esp_hal_smartled::LedAdapterError> {
+    rgb_led.write(brightness(gamma([color].into_iter()), RGB_LEVEL))
 }
 
 fn axis_to_brightness(value: i16) -> u8 {

@@ -9,6 +9,8 @@ Domyslny program steruje dioda RGB z akcelerometru, a dane z SHTC3 wysyla do mon
 
 - `src/bin/main.rs` - aplikacja glowna: IMU steruje jasnoscia RGB, SHTC3 loguje temperature i wilgotnosc.
 - `src/bin/hello.rs` - drugi program: logowanie komunikatu co sekunde.
+- `src/bin/rgb_test.rs` - bezpieczny test samej RGB: bardzo slabe R/G/B/off.
+- `src/bin/safe_off.rs` - awaryjny program trzymajacy GPIO2 i GPIO7 w stanie niskim.
 - `.cargo/config.toml` - target `riscv32imc-unknown-none-elf` i runner przez `espflash`.
 - `.vscode/` - ustawienia, rekomendowane rozszerzenia i zadania VS Code.
 - `docs/plytka/` - zdjecia i opis konkretnej wersji plytki.
@@ -68,6 +70,18 @@ Wgraj przyklad `hello`:
 cargo run --bin hello
 ```
 
+Wgraj bardzo przygaszony test RGB bez czujnikow:
+
+```bash
+cargo run --bin rgb_test
+```
+
+Awaryjnie zgas RGB i mala czerwona LED:
+
+```bash
+cargo run --bin safe_off
+```
+
 Runner w `.cargo/config.toml` uzywa:
 
 ```bash
@@ -106,6 +120,7 @@ Najwazniejsze zadania w VS Code:
 - Rust on ESP Book: https://docs.espressif.com/projects/rust/book/
 - esp-generate: https://github.com/esp-rs/esp-generate
 - esp-hal: https://github.com/esp-rs/esp-hal
+- oficjalny przyklad RGB dla `esp-hal-smartled`: https://github.com/esp-rs/esp-hal-community/blob/main/esp-hal-smartled/examples/hello_rgb.rs
 - espflash: https://github.com/esp-rs/espflash
 - ESP32-C3-DevKit-RUST board: https://github.com/esp-rs/esp-rust-board
 - Dokumentacja RUST-2 z informacja o zmianie GPIO LED: https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32c3/esp32-c3-devkit-rust-2/user_guide.html

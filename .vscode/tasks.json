@@ -26,7 +26,7 @@
             "problemMatcher": []
         },
         {
-            "label": "esp32c3: flash blink",
+            "label": "esp32c3: flash sensors-rgb",
             "command": "cargo run",
             "type": "shell",
             "problemMatcher": "$rustc"

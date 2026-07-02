@@ -3,11 +3,11 @@
 Starter Rust `no_std` dla plytki `ESP32-C3-DevKit-RUST-1 v1.2a`.
 
 Projekt bazuje na aktualnym generatorze `esp-generate` i stosie `esp-hal`.
-Domyslny program miga dioda uzytkownika na GPIO7, co odpowiada wersji RUST-1 tej plytki.
+Domyslny program steruje dioda RGB z akcelerometru, a dane z SHTC3 wysyla do monitora szeregowego co 5 sekund.
 
 ## Co jest w repo
 
-- `src/bin/main.rs` - pierwszy program: blink diody uzytkownika na GPIO7.
+- `src/bin/main.rs` - aplikacja glowna: IMU steruje jasnoscia RGB, SHTC3 loguje temperature i wilgotnosc.
 - `src/bin/hello.rs` - drugi program: logowanie komunikatu co sekunde.
 - `.cargo/config.toml` - target `riscv32imc-unknown-none-elf` i runner przez `espflash`.
 - `.vscode/` - ustawienia, rekomendowane rozszerzenia i zadania VS Code.
@@ -56,7 +56,7 @@ Podlacz plytke przez USB-C i sprawdz porty:
 espflash list-ports
 ```
 
-Wgraj domyslny blink:
+Wgraj domyslna aplikacje RGB + czujniki:
 
 ```bash
 cargo run
@@ -86,13 +86,18 @@ Najwazniejsze zadania w VS Code:
 - `cargo: clippy`
 - `cargo: fmt`
 - `espflash: list ports`
-- `esp32c3: flash blink`
+- `esp32c3: flash sensors-rgb`
 - `esp32c3: flash hello`
 
 ## Notatki sprzetowe
 
 - Ta plytka to `ESP32-C3-DevKit-RUST-1 v1.2a 04/2022`.
 - Dioda uzytkownika RUST-1 jest na GPIO7.
+- Aktualna aplikacja trzyma GPIO7 w stanie niskim, wiec mala czerwona LED nie miga.
+- RGB WS2812/SK6812 jest na GPIO2.
+- Magistrala I2C: SDA GPIO10, SCL GPIO8.
+- IMU ICM42670-P jest pod adresem `0x68`.
+- Czujnik temperatury i wilgotnosci SHTC3 jest pod adresem `0x70`.
 - W RUST-2 dioda zostala przeniesiona na GPIO10, wiec nie kopiuj pinoutu z RUST-2 bez sprawdzenia rewizji.
 - ESP32-C3 jest RISC-V, dlatego podstawowy target Rust to `riscv32imc-unknown-none-elf`.
 
